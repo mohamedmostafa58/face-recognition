@@ -7,8 +7,8 @@ function App() {
   const [right, setright] = useState(false);
   const [left, setleft] = useState(false);
   const [top, settop] = useState(false);
-  const [bottom, setbottom] = useState(false);
   const [nosepoint, setnosepoint] = useState([0, 0, 0]);
+  const [nose, setnose] = useState(null);
   const [verified, setverified] = useState(false);
   useEffect(() => {
     let interval;
@@ -34,41 +34,39 @@ function App() {
           .withFaceLandmarks();
         if (detections.length > 0) {
           setfacedetected(true);
-          console.log(nosepoint);
-          const nose = detections[0].landmarks.getNose();
-          if (nosepoint[2] !== 0) {
-            if (Number(nose[3].x) - nosepoint[0] > 10) {
-              setright(true);
-            }
-            if (Number(nose[3].x) - nosepoint[0] < -10) {
-              setleft(true);
-            }
-            if (Number(nose[3].y) - nosepoint[1] > 10) {
-              settop(true);
-            }
-            if (Number(nose[3].y) - nosepoint[1] < -10) {
-              setbottom(true);
-            }
-          } else {
-            setnosepoint([Number(nose[3].x), Number(nose[3].y), 1]);
-          }
-          if (right && left && top && bottom) {
-            setverified(true);
-            clearInterval(interval);
-          }
+          setnose(detections[0].landmarks.getNose());
         } else {
           setfacedetected(false);
           setnosepoint([0, 0, 0]);
           setright(false);
           setleft(false);
           settop(false);
-          setbottom(false);
         }
       }, 100);
     };
     facedetect();
     return () => clearInterval(interval);
-  }, [bottom, facedetected, left, nosepoint, right, top]);
+  }, []);
+  useEffect(() => {
+    if (nose) {
+      if (nosepoint[2] !== 0) {
+        if (Number(nose[3].x) - nosepoint[0] > 10) {
+          setright(true);
+        }
+        if (Number(nose[3].x) - nosepoint[0] < -10) {
+          setleft(true);
+        }
+        if (Number(nose[3].y) - nosepoint[1] < -10) {
+          settop(true);
+        }
+      } else {
+        setnosepoint([Number(nose[3].x), Number(nose[3].y), 1]);
+      }
+      if (right && left && top) {
+        setverified(true);
+      }
+    }
+  }, [left, nose, nosepoint, right, top]);
   if (verified) {
     return <div className={styles.verified}>whattt</div>;
   }
