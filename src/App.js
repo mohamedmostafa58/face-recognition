@@ -10,6 +10,7 @@ function App() {
   const [nosepoint, setnosepoint] = useState([0, 0, 0]);
   const [nose, setnose] = useState(null);
   const [verified, setverified] = useState(false);
+  const [stream, setstream] = useState(null);
   useEffect(() => {
     let interval;
     const loadModels = async () => {
@@ -18,29 +19,37 @@ function App() {
     };
 
     const startVideo = async () => {
-      navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-        if (videoref.current) {
-          videoref.current.srcObject = stream;
-        }
+      const userMedia = await navigator.mediaDevices.getUserMedia({
+        video: true,
       });
+      if (videoref.current) {
+        videoref.current.srcObject = userMedia;
+        setstream(userMedia);
+      }
     };
+
     const facedetect = async () => {
       await loadModels();
       await startVideo();
 
       interval = setInterval(async () => {
-        const detections = await faceapi
-          .detectAllFaces(videoref.current, new faceapi.SsdMobilenetv1Options())
-          .withFaceLandmarks();
-        if (detections.length > 0) {
-          setfacedetected(true);
-          setnose(detections[0].landmarks.getNose());
-        } else {
-          setfacedetected(false);
-          setnosepoint([0, 0, 0]);
-          setright(false);
-          setleft(false);
-          settop(false);
+        if (videoref.current) {
+          const detections = await faceapi
+            .detectAllFaces(
+              videoref.current,
+              new faceapi.SsdMobilenetv1Options()
+            )
+            .withFaceLandmarks();
+          if (detections.length > 0) {
+            setfacedetected(true);
+            setnose(detections[0].landmarks.getNose());
+          } else {
+            setfacedetected(false);
+            setnosepoint([0, 0, 0]);
+            setright(false);
+            setleft(false);
+            settop(false);
+          }
         }
       }, 100);
     };
@@ -56,6 +65,7 @@ function App() {
         if (Number(nose[3].x) - nosepoint[0] < -10) {
           setleft(true);
         }
+
         if (Number(nose[3].y) - nosepoint[1] < -10) {
           settop(true);
         }
@@ -63,12 +73,18 @@ function App() {
         setnosepoint([Number(nose[3].x), Number(nose[3].y), 1]);
       }
       if (right && left && top) {
+        videoref.current = null;
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => track.stop());
+        if (videoref.current) {
+          videoref.current.srcObject = null;
+        }
         setverified(true);
       }
     }
-  }, [left, nose, nosepoint, right, top]);
+  }, [left, nose, nosepoint, right, stream, top]);
   if (verified) {
-    return <div className={styles.verified}>whattt</div>;
+    return <div className={styles.verified}></div>;
   }
   return (
     <>
