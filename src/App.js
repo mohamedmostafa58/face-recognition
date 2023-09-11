@@ -57,10 +57,10 @@ function App() {
   useEffect(() => {
     if (nose) {
       if (nosepoint[2] !== 0) {
-        if (Number(nose[3].x) - nosepoint[0] > 15) {
+        if (Number(nose[3].x) - nosepoint[0] > 20) {
           setright(true);
         }
-        if (Number(nose[3].x) - nosepoint[0] < -15) {
+        if (Number(nose[3].x) - nosepoint[0] < -20) {
           setleft(true);
         }
       } else {
@@ -107,7 +107,7 @@ function App() {
       </div>
       <h3 className={styles.header}>
         {facedetected
-          ? "turn your face top,right and left"
+          ? "turn your face alittle right and left"
           : "put your face in the frame"}
       </h3>
     </>
