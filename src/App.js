@@ -6,7 +6,6 @@ function App() {
   const [facedetected, setfacedetected] = useState(false);
   const [right, setright] = useState(false);
   const [left, setleft] = useState(false);
-  const [top, settop] = useState(false);
   const [nosepoint, setnosepoint] = useState([0, 0, 0]);
   const [nose, setnose] = useState(null);
   const [verified, setverified] = useState(false);
@@ -48,7 +47,6 @@ function App() {
             setnosepoint([0, 0, 0]);
             setright(false);
             setleft(false);
-            settop(false);
           }
         }
       }, 100);
@@ -65,14 +63,10 @@ function App() {
         if (Number(nose[3].x) - nosepoint[0] < -15) {
           setleft(true);
         }
-
-        if (Number(nose[3].y) - nosepoint[1] < -15) {
-          settop(true);
-        }
       } else {
         setnosepoint([Number(nose[3].x), Number(nose[3].y), 1]);
       }
-      if (right && left && top) {
+      if (right && left) {
         videoref.current = null;
         const tracks = stream.getTracks();
         tracks.forEach((track) => track.stop());
@@ -82,7 +76,7 @@ function App() {
         setverified(true);
       }
     }
-  }, [left, nose, nosepoint, right, stream, top]);
+  }, [left, nose, nosepoint, right, stream]);
   if (verified) {
     return (
       <div className={styles.circle}>
