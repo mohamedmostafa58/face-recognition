@@ -59,14 +59,14 @@ function App() {
   useEffect(() => {
     if (nose) {
       if (nosepoint[2] !== 0) {
-        if (Number(nose[3].x) - nosepoint[0] > 10) {
+        if (Number(nose[3].x) - nosepoint[0] > 15) {
           setright(true);
         }
-        if (Number(nose[3].x) - nosepoint[0] < -10) {
+        if (Number(nose[3].x) - nosepoint[0] < -15) {
           setleft(true);
         }
 
-        if (Number(nose[3].y) - nosepoint[1] < -10) {
+        if (Number(nose[3].y) - nosepoint[1] < -15) {
           settop(true);
         }
       } else {
@@ -84,7 +84,11 @@ function App() {
     }
   }, [left, nose, nosepoint, right, stream, top]);
   if (verified) {
-    return <div className={styles.verified}></div>;
+    return (
+      <div className={styles.circle}>
+        <span>&#10003;</span>
+      </div>
+    );
   }
   return (
     <>
@@ -107,9 +111,9 @@ function App() {
           }
         ></video>
       </div>
-      <h3>
+      <h3 className={styles.header}>
         {facedetected
-          ? "turn your face top, bottom right and left"
+          ? "turn your face top,right and left"
           : "put your face in the frame"}
       </h3>
     </>
