@@ -3,6 +3,7 @@ import styles from "./App.module.css";
 import * as faceapi from "face-api.js";
 function App() {
   const videoref = useRef(null);
+  const canvasRef = useRef(null);
   const [facedetected, setfacedetected] = useState(false);
   const [right, setright] = useState(false);
   const [left, setleft] = useState(false);
@@ -10,6 +11,10 @@ function App() {
   const [nose, setnose] = useState(null);
   const [verified, setverified] = useState(false);
   const [stream, setstream] = useState(null);
+  const [isloaded, setisloaded] = useState(false);
+  const [image, setimage] = useState(null);
+  const [intervalId, setIntervalId] = useState(null);
+  const [timeoutid, settimeoutid] = useState(null);
   useEffect(() => {
     let interval;
     const loadModels = async () => {
@@ -26,11 +31,20 @@ function App() {
         setstream(userMedia);
       }
     };
-
+    const capturePhoto = () => {
+      if (videoref.current) {
+        const canvas = canvasRef.current;
+        const video = videoref.current;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        setimage(canvas.toDataURL("image/png"));
+      }
+    };
     const facedetect = async () => {
       await loadModels();
       await startVideo();
-
+      setisloaded(true);
       interval = setInterval(async () => {
         if (videoref.current) {
           const detections = await faceapi
@@ -40,6 +54,9 @@ function App() {
             )
             .withFaceLandmarks();
           if (detections.length > 0) {
+            if (!facedetected) {
+              capturePhoto();
+            }
             setfacedetected(true);
             setnose(detections[0].landmarks.getNose());
           } else {
@@ -47,26 +64,46 @@ function App() {
             setnosepoint([0, 0, 0]);
             setright(false);
             setleft(false);
+            setimage(null);
+            clearTimeout(timeoutid);
+            settimeoutid(null);
           }
         }
       }, 100);
     };
+    setIntervalId(interval);
     facedetect();
     return () => clearInterval(interval);
   }, []);
   useEffect(() => {
+    let timeout;
     if (nose) {
       if (nosepoint[2] !== 0) {
-        if (Number(nose[3].x) - nosepoint[0] > 20) {
-          setright(true);
-        }
-        if (Number(nose[3].x) - nosepoint[0] < -20) {
-          setleft(true);
+        if (!right) {
+          if (Number(nose[3].x) - nosepoint[0] < -20) {
+            setright(true);
+          }
+        } else {
+          if (!timeoutid) {
+            timeout = setTimeout(() => {
+              if (Number(nose[3].x) - nosepoint[0] > 20) {
+                setleft(true);
+              }
+            }, 2500);
+            settimeoutid(timeout);
+          } else {
+            if (!timeout) {
+              if (Number(nose[3].x) - nosepoint[0] > 20) {
+                setleft(true);
+              }
+            }
+          }
         }
       } else {
         setnosepoint([Number(nose[3].x), Number(nose[3].y), 1]);
       }
       if (right && left) {
+        clearInterval(intervalId);
         videoref.current = null;
         const tracks = stream.getTracks();
         tracks.forEach((track) => track.stop());
@@ -76,7 +113,8 @@ function App() {
         setverified(true);
       }
     }
-  }, [left, nose, nosepoint, right, stream]);
+  }, [intervalId, left, nose, nosepoint, right, stream, timeoutid]);
+
   if (verified) {
     return (
       <div className={styles.circle}>
@@ -86,9 +124,14 @@ function App() {
   }
   return (
     <>
+      <canvas ref={canvasRef} className={styles.hiddenCanvas}></canvas>
       <div
         className={
-          !facedetected ? `${styles.container}` : `${styles.containerwithface}`
+          isloaded
+            ? !facedetected
+              ? `${styles.container}`
+              : `${styles.containerwithface}`
+            : `${styles.none}`
         }
       >
         {[...Array(4)].map((_, i) => (
@@ -105,11 +148,17 @@ function App() {
           }
         ></video>
       </div>
-      <h3 className={styles.header}>
+      <h3 className={isloaded ? `${styles.header}` : `${styles.none}`}>
         {facedetected
-          ? "turn your face alittle right and left"
+          ? right
+            ? "Turn your face alittle to the left"
+            : "turn your face alittle to the right"
           : "put your face in the frame"}
       </h3>
+      <div className={isloaded ? `${styles.none}` : `${styles.loading}`}>
+        <div className={styles.spinner}></div>
+        <h1>Loading...</h1>
+      </div>
     </>
   );
 }
