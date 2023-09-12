@@ -7,6 +7,7 @@ function App() {
   const [facedetected, setfacedetected] = useState(false);
   const [right, setright] = useState(false);
   const [left, setleft] = useState(false);
+  const [top, settop] = useState(false);
   const [nosepoint, setnosepoint] = useState([0, 0, 0]);
   const [nose, setnose] = useState(null);
   const [verified, setverified] = useState(false);
@@ -64,6 +65,7 @@ function App() {
             setnosepoint([0, 0, 0]);
             setright(false);
             setleft(false);
+            settop(false);
             setimage(null);
             clearTimeout(timeoutid);
             settimeoutid(null);
@@ -80,29 +82,34 @@ function App() {
     if (nose) {
       if (nosepoint[2] !== 0) {
         if (!right) {
-          if (Number(nose[3].x) - nosepoint[0] < -20) {
+          if (Number(nose[3].x) - nosepoint[0] < -60) {
             setright(true);
           }
         } else {
           if (!timeoutid) {
             timeout = setTimeout(() => {
-              if (Number(nose[3].x) - nosepoint[0] > 20) {
+              if (Number(nose[3].x) - nosepoint[0] > 60) {
                 setleft(true);
               }
-            }, 2500);
+            }, 3000);
             settimeoutid(timeout);
           } else {
             if (!timeout) {
-              if (Number(nose[3].x) - nosepoint[0] > 20) {
+              if (Number(nose[3].x) - nosepoint[0] > 60) {
                 setleft(true);
               }
             }
           }
         }
+        if (right && left) {
+          if (Number(nose[3].y) - nosepoint[1] < -60) {
+            settop(true);
+          }
+        }
       } else {
         setnosepoint([Number(nose[3].x), Number(nose[3].y), 1]);
       }
-      if (right && left) {
+      if (right && left && top) {
         clearInterval(intervalId);
         videoref.current = null;
         const tracks = stream.getTracks();
@@ -113,7 +120,7 @@ function App() {
         setverified(true);
       }
     }
-  }, [intervalId, left, nose, nosepoint, right, stream, timeoutid]);
+  }, [intervalId, left, nose, nosepoint, right, stream, timeoutid, top]);
 
   if (verified) {
     return (
@@ -151,7 +158,9 @@ function App() {
       <h3 className={isloaded ? `${styles.header}` : `${styles.none}`}>
         {facedetected
           ? right
-            ? "Turn your face alittle to the left"
+            ? left
+              ? "raise your face alittle to the top"
+              : "turn your face alittle to the left"
             : "turn your face alittle to the right"
           : "put your face in the frame"}
       </h3>
