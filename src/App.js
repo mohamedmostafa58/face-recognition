@@ -104,7 +104,7 @@ function App() {
           }
         }
         if (right && left) {
-          if (Number(nose[3].y) - nosepoint[1] < -30) {
+          if (Number(nose[3].y) - nosepoint[1] < -50) {
             settop(true);
           }
         }
