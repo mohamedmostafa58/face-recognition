@@ -43,8 +43,8 @@
   display: none;
 }
 .containerwithface {
-  width: 300px;
-  height: 300px;
+  width: 210px;
+  height: 210px;
   position: relative;
   border-radius: 50%;
   border: 3px solid green;
@@ -73,6 +73,15 @@
   color: white;
   width: 300px;
   border-radius: 8px;
+}
+.headerwithface {
+  font-size: 16px;
+  text-align: center;
+  padding: 2px;
+  background-color: rgb(17, 59, 17);
+  color: white;
+  width: 210px;
+  border-radius: 5px;
 }
 
 .hiddenCanvas {

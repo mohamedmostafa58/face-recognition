@@ -8,6 +8,7 @@ function App() {
   const [right, setright] = useState(false);
   const [left, setleft] = useState(false);
   const [top, settop] = useState(false);
+  const [bottom, setbottom] = useState(false);
   const [nosepoint, setnosepoint] = useState([0, 0, 0]);
   const [nose, setnose] = useState(null);
   const [verified, setverified] = useState(false);
@@ -66,6 +67,7 @@ function App() {
             setright(false);
             setleft(false);
             settop(false);
+            setbottom(false);
             setimage(null);
             clearTimeout(timeoutid);
             settimeoutid(null);
@@ -82,34 +84,39 @@ function App() {
     if (nose) {
       if (nosepoint[2] !== 0) {
         if (!right) {
-          if (Number(nose[3].x) - nosepoint[0] < -60) {
+          if (Number(nose[3].x) - nosepoint[0] < -50) {
             setright(true);
           }
         } else {
           if (!timeoutid) {
             timeout = setTimeout(() => {
-              if (Number(nose[3].x) - nosepoint[0] > 60) {
+              if (Number(nose[3].x) - nosepoint[0] > 50) {
                 setleft(true);
               }
             }, 3000);
             settimeoutid(timeout);
           } else {
             if (!timeout) {
-              if (Number(nose[3].x) - nosepoint[0] > 60) {
+              if (Number(nose[3].x) - nosepoint[0] > 50) {
                 setleft(true);
               }
             }
           }
         }
         if (right && left) {
-          if (Number(nose[3].y) - nosepoint[1] < -60) {
+          if (Number(nose[3].y) - nosepoint[1] < -30) {
             settop(true);
+          }
+        }
+        if (right && left && top) {
+          if (Number(nose[3].y) - nosepoint[1] > 30) {
+            setbottom(true);
           }
         }
       } else {
         setnosepoint([Number(nose[3].x), Number(nose[3].y), 1]);
       }
-      if (right && left && top) {
+      if (right && left && top && bottom) {
         clearInterval(intervalId);
         videoref.current = null;
         const tracks = stream.getTracks();
@@ -120,7 +127,17 @@ function App() {
         setverified(true);
       }
     }
-  }, [intervalId, left, nose, nosepoint, right, stream, timeoutid, top]);
+  }, [
+    bottom,
+    intervalId,
+    left,
+    nose,
+    nosepoint,
+    right,
+    stream,
+    timeoutid,
+    top,
+  ]);
 
   if (verified) {
     return (
@@ -155,11 +172,21 @@ function App() {
           }
         ></video>
       </div>
-      <h3 className={isloaded ? `${styles.header}` : `${styles.none}`}>
+      <h3
+        className={
+          isloaded
+            ? facedetected
+              ? `${styles.headerwithface}`
+              : `${styles.header}`
+            : `${styles.none}`
+        }
+      >
         {facedetected
           ? right
             ? left
-              ? "raise your face alittle to the top"
+              ? top
+                ? "lower your face alittle"
+                : "raise your face alittle to the top"
               : "turn your face alittle to the left"
             : "turn your face alittle to the right"
           : "put your face in the frame"}
