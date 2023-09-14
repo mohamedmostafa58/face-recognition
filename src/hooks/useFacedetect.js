@@ -179,7 +179,7 @@ const useFacedetect = () => {
             console.error("Error sending video:", error);
           });
       };
-      console.log("send data");
+      sendData();
     }
   }, [verified]);
   return { isloaded, facedetected, right, left, top, verified, videoref };
